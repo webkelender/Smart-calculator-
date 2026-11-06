@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>दिवाळी फराळ कॅल्क्युलेटर</title>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;800&family=Tiro+Devanagari+Marathi&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fbf1e0; --card:#fff9ee; --ink:#3a1410; --maroon:#7a1a14; --maroon-ink:#fff4e0;
+  --gold:#c88a1c; --line:#e8cfa0; --muted:#8a6a4a; --chip:#f6e2bd; --ok:#2e7d32;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#1e0f0c;--card:#2b1713;--ink:#fbe8cc;--maroon:#b83a2c;--maroon-ink:#fff4e0;--gold:#e5a93d;--line:#4a2a20;--muted:#c9a47c;--chip:#3c211a;--ok:#5fbf6a}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Mukta",system-ui,sans-serif;
+  padding:env(safe-area-inset-top,0px) 0 calc(env(safe-area-inset-bottom,0px) + 110px)}
+button{font-family:inherit}
+button:focus-visible,input:focus-visible{outline:3px solid var(--maroon);outline-offset:2px}
+
+header{position:relative;text-align:center;padding:16px 64px 8px}
+h1{font-family:"Tiro Devanagari Marathi",serif;font-weight:400;font-size:clamp(24px,6.5vw,38px);margin:0;color:var(--maroon);line-height:1.2}
+header p{margin:4px 0 0;color:var(--muted);font-size:15px}
+.burger{position:absolute;left:12px;top:16px;width:46px;height:46px;border-radius:14px;border:1.5px solid var(--maroon);background:var(--card);cursor:pointer;display:grid;place-content:center;gap:5px}
+.burger i{display:block;width:22px;height:2.5px;background:var(--maroon);border-radius:2px}
+.burger .cnt{position:absolute;right:-6px;top:-6px;min-width:22px;height:22px;border-radius:11px;background:var(--gold);color:#fff;font:800 13px/22px "Mukta",sans-serif;padding:0 5px}
+
+main{max-width:760px;margin:0 auto;padding:8px 14px}
+.namebox{background:var(--card);border:1.5px solid var(--maroon);border-radius:18px;padding:12px 14px;margin-bottom:12px}
+.namebox label{display:block;font-weight:600;color:var(--muted);font-size:14px;margin-bottom:4px}
+.namebox input{width:100%;border:none;border-bottom:2px solid var(--line);background:transparent;color:var(--ink);font:800 22px "Mukta",sans-serif;padding:4px 0}
+.namebox input:focus{outline:none;border-color:var(--maroon)}
+.edit{display:none;margin-top:8px;font-size:14px;color:var(--maroon);font-weight:600}
+.edit button{border:none;background:none;color:var(--maroon);text-decoration:underline;font-weight:800;cursor:pointer;font-size:14px}
+.editing .edit{display:block}
+
+.grid{display:grid;gap:12px}
+.item{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:14px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.name{font-weight:800;font-size:20px}
+.name small{font-weight:400;color:var(--muted);font-size:14px}
+.rate{background:var(--maroon);color:var(--maroon-ink);padding:4px 12px;border-radius:10px;font-weight:600;white-space:nowrap}
+.adds{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.adds button{border:1.5px solid var(--gold);background:var(--chip);color:var(--ink);border-radius:12px;padding:11px 2px;font-weight:600;font-size:15px;cursor:pointer;transition:transform .08s}
+.adds button:active{transform:scale(.94);background:var(--gold);color:#fff}
+.row{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:12px;min-height:36px}
+.qty{font-size:15px;color:var(--muted)}
+.qty b{color:var(--ink);font-size:17px}
+.amt{font-weight:800;font-size:20px;color:var(--maroon)}
+.ctl{display:flex;gap:4px}
+.ctl button{border:none;background:none;color:var(--muted);font-weight:600;font-size:14px;text-decoration:underline;cursor:pointer;padding:6px 4px}
+.item.has{border-color:var(--maroon)}
+.item:not(.has) .row{display:none}
+
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--maroon);color:var(--maroon-ink);
+  padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;align-items:center;justify-content:space-between;gap:12px;
+  box-shadow:0 -6px 20px rgba(0,0,0,.25);z-index:5}
+.bar .t small{display:block;opacity:.85;font-size:13px}
+.bar .t strong{font-size:26px;font-weight:800;line-height:1.1}
+.bar button{background:var(--maroon-ink);color:var(--maroon);border:none;border-radius:12px;padding:12px 18px;font-weight:800;font-size:16px;cursor:pointer}
+
+/* Drawer */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s;z-index:30}
+.drawer{position:fixed;top:0;bottom:0;left:0;width:min(92vw,420px);background:var(--bg);z-index:31;transform:translateX(-102%);transition:transform .25s;
+  display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);box-shadow:6px 0 24px rgba(0,0,0,.3)}
+body.open .scrim{opacity:1;pointer-events:auto}
+body.open .drawer{transform:none}
+.dh{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1.5px solid var(--line)}
+.dh h2{font-family:"Tiro Devanagari Marathi",serif;font-weight:400;margin:0;color:var(--maroon);font-size:22px}
+.dh button{border:none;background:var(--chip);color:var(--ink);width:38px;height:38px;border-radius:12px;font-size:20px;cursor:pointer}
+.db{flex:1;overflow-y:auto;padding:12px 14px calc(env(safe-area-inset-bottom,0px) + 20px)}
+.sum{background:var(--maroon);color:var(--maroon-ink);border-radius:16px;padding:12px 14px;margin-bottom:12px}
+.sum .big{display:flex;justify-content:space-between;font-weight:800;font-size:18px}
+.sum ul{list-style:none;margin:8px 0 0;padding:8px 0 0;border-top:1px solid rgba(255,244,224,.35);font-size:14px}
+.sum li{display:flex;justify-content:space-between}
+.ord{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}
+.ord.cur{border-color:var(--maroon)}
+.oh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.oh b{font-size:19px}
+.oh span{font-weight:800;color:var(--maroon);font-size:19px}
+.od{color:var(--muted);font-size:13px}
+.ord ul{list-style:none;margin:8px 0;padding:0;font-size:15px}
+.ord li{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
+.oa{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.oa button{border:1.5px solid var(--maroon);background:none;color:var(--maroon);border-radius:10px;padding:8px 2px;font-weight:800;font-size:14px;cursor:pointer}
+.oa .del{border-color:var(--line);color:var(--muted)}
+.oa .ok{border-color:var(--ok);color:var(--ok)}
+.ord.done{border-color:var(--ok)}
+.ord.done .oa .ok{background:var(--ok);color:#fff}
+.badge{display:inline-block;background:var(--ok);color:#fff;border-radius:8px;padding:1px 8px;font-size:13px;font-weight:800;margin-left:6px;vertical-align:2px}
+.sum .done{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,244,224,.35);display:flex;justify-content:space-between;font-weight:800;font-size:17px}
+.sum .sub{display:flex;justify-content:space-between;font-size:14px;opacity:.9;margin-top:4px}
+.clearall{width:100%;margin-top:6px;border:1.5px solid var(--line);background:none;color:var(--muted);border-radius:12px;padding:10px;font-weight:800;font-size:14px;cursor:pointer}
+.empty{color:var(--muted);padding:24px 8px;text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 100px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:20px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:40;max-width:90vw;text-align:center}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <button class="burger" id="menuBtn" aria-label="सेव्ह केलेल्या ऑर्डर्स उघडा"><i></i><i></i><i></i><span class="cnt" id="cnt">0</span></button>
+  <h1>दिवाळी फराळ कॅल्क्युलेटर</h1>
+  <p>नाव लिहा, वजन निवडा, ऑर्डर सेव्ह करा</p>
+</header>
+
+<main>
+  <div class="namebox" id="nameBox">
+    <label for="cust">ग्राहकाचे नाव</label>
+    <input id="cust" type="text" placeholder="उदा. सुरेखा ताई" autocomplete="off" maxlength="60">
+    <div class="edit">संपादन सुरू आहे · <button id="cancelEdit">रद्द करा</button></div>
+  </div>
+  <div class="grid" id="list"></div>
+</main>
+
+<div class="bar">
+  <div class="t"><small id="totW">0 kg</small><strong id="totP">₹0</strong></div>
+  <button id="saveBtn">ऑर्डर सेव्ह करा</button>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="सेव्ह केलेल्या ऑर्डर्स">
+  <div class="dh"><h2>सेव्ह केलेल्या ऑर्डर्स</h2><button id="closeBtn" aria-label="बंद करा">✕</button></div>
+  <div class="db" id="orders"></div>
+</aside>
+<div class="toast" id="toast"></div>
+
+<script>
+const PRODUCTS=[
+  {id:"chakli",name:"चकली",sub:"",rate:600},
+  {id:"karanji",name:"करंजी",sub:"(ड्रायफ्रूट्स)",rate:700},
+  {id:"ladu",name:"बेसन लाडू",sub:"(साजूक तूप)",rate:800},
+  {id:"god",name:"गोड शंकरपाळे",sub:"",rate:500},
+  {id:"khare",name:"खारे शंकरपाळे",sub:"",rate:430},
+  {id:"chivda",name:"चिवडा",sub:"(पातळ पोहे)",rate:450}
+];
+const STEPS=[{g:1000,l:"+1 kg"},{g:500,l:"+½ kg"},{g:250,l:"+¼ kg"},{g:100,l:"+100 g"}];
+const ORDERS_KEY="faral-orders-v1", DRAFT_KEY="faral-draft-v1";
+const $=id=>document.getElementById(id);
+const load=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v??d}catch(e){return d}};
+const store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
+
+let orders=load(ORDERS_KEY,[]);
+let draft=load(DRAFT_KEY,{name:"",qty:{},editId:null});
+if(!draft.qty) draft={name:"",qty:{},editId:null};
+const qty=draft.qty;
+
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtW=g=>{
+  if(!g) return "0 g";
+  const kg=Math.floor(g/1000), r=g%1000, fr={250:"¼",500:"½",750:"¾"}[r];
+  if(kg&&!r) return kg+" kg";
+  if(kg&&fr) return kg+" "+fr+" kg";
+  if(kg) return kg+" kg "+r+" g";
+  return fr?fr+" kg":r+" g";
+};
+const rateOf=id=>PRODUCTS.find(p=>p.id===id);
+const price=(id,g)=>Math.round(rateOf(id).rate*g)/1000;
+const money=n=>"₹"+(Number.isInteger(n)?n:n.toFixed(2)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,",");
+const total=q=>Object.keys(q).reduce((s,id)=>s+price(id,q[id]),0);
+const weight=q=>Object.keys(q).reduce((s,id)=>s+q[id],0);
+const persistDraft=()=>store(DRAFT_KEY,draft);
+
+$("list").innerHTML=PRODUCTS.map(p=>`
+  <section class="item" id="i-${p.id}">
+    <div class="top"><div class="name">${p.name} <small>${p.sub}</small></div><div class="rate">₹${p.rate}/kg</div></div>
+    <div class="adds">${STEPS.map(s=>`<button data-id="${p.id}" data-g="${s.g}" aria-label="${p.name} ${s.l}">${s.l}</button>`).join("")}</div>
+    <div class="row">
+      <div class="qty">एकूण: <b></b></div>
+      <div class="ctl"><button data-id="${p.id}" data-undo="1">−¼ kg</button><button data-id="${p.id}" data-rm="1">काढा</button></div>
+      <div class="amt"></div>
+    </div>
+  </section>`).join("");
+
+function render(){
+  PRODUCTS.forEach(p=>{
+    const g=qty[p.id]||0, el=$("i-"+p.id);
+    el.classList.toggle("has",g>0);
+    el.querySelector(".qty b").textContent=fmtW(g);
+    el.querySelector(".amt").textContent=money(price(p.id,g));
+  });
+  $("totW").textContent=weight(qty)?fmtW(weight(qty)):"0 kg";
+  $("totP").textContent=money(total(qty));
+  $("cust").value=draft.name;
+  $("nameBox").classList.toggle("editing",!!draft.editId);
+  $("saveBtn").textContent=draft.editId?"बदल सेव्ह करा":"ऑर्डर सेव्ह करा";
+  persistDraft();
+}
+
+$("list").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  const id=b.dataset.id;
+  if(b.dataset.g) qty[id]=(qty[id]||0)+ +b.dataset.g;
+  else if(b.dataset.undo) qty[id]=Math.max(0,(qty[id]||0)-250);
+  else if(b.dataset.rm) delete qty[id];
+  if(!qty[id]) delete qty[id];
+  render();
+});
+$("cust").addEventListener("input",e=>{draft.name=e.target.value;persistDraft()});
+
+function resetDraft(){
+  draft.name="";draft.editId=null;
+  Object.keys(qty).forEach(k=>delete qty[k]);
+  render();
+}
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("on"),1800)}
+
+$("saveBtn").onclick=()=>{
+  const name=draft.name.trim();
+  if(!name){toast("आधी ग्राहकाचे नाव लिहा");$("cust").focus();return}
+  if(!Object.keys(qty).length){toast("किमान एक पदार्थ निवडा");return}
+  const rec={id:draft.editId||("o"+Date.now()),name,date:new Date().toISOString(),items:{...qty},total:total(qty),done:false};
+  const i=orders.findIndex(o=>o.id===rec.id);
+  if(i>=0){rec.date=orders[i].date;rec.done=!!orders[i].done;orders[i]=rec}else orders.unshift(rec);
+  if(!store(ORDERS_KEY,orders)){toast("सेव्ह करता आले नाही (स्टोरेज बंद आहे)");return}
+  toast(i>=0?"ऑर्डर अपडेट झाली":"ऑर्डर सेव्ह झाली");
+  resetDraft();renderOrders();
+};
+$("cancelEdit").onclick=resetDraft;
+
+/* Drawer */
+const openMenu=()=>{renderOrders();document.body.classList.add("open")};
+const closeMenu=()=>document.body.classList.remove("open");
+$("menuBtn").onclick=openMenu;$("closeBtn").onclick=closeMenu;$("scrim").onclick=closeMenu;
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMenu()});
+
+const orderText=o=>{
+  const rows=Object.keys(o.items).map(id=>`${rateOf(id).name} – ${fmtW(o.items[id])} = ${money(price(id,o.items[id]))}`);
+  return `दिवाळी फराळ ऑर्डर – ${o.name}\n${rows.join("\n")}\n\nएकूण वजन: ${fmtW(weight(o.items))}\nएकूण रक्कम: ${money(o.total)}`;
+};
+const fmtDate=iso=>new Date(iso).toLocaleString("mr-IN",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"});
+
+function renderOrders(){
+  $("cnt").textContent=orders.length;
+  const box=$("orders");
+  if(!orders.length){box.innerHTML='<div class="empty">अजून कोणतीही ऑर्डर सेव्ह केलेली नाही.</div>';return}
+  const sums={};let grand=0,dn=0,dc=0;
+  orders.forEach(o=>{grand+=o.total;if(o.done){dn+=o.total;dc++}Object.keys(o.items).forEach(id=>sums[id]=(sums[id]||0)+o.items[id])});
+  box.innerHTML=`<div class="sum">
+      <div class="big"><span>✔ पूर्ण: ${dc} ऑर्डर्स</span><span>${money(dn)}</span></div>
+      <div class="sub"><span>बाकी: ${orders.length-dc} ऑर्डर्स</span><span>${money(grand-dn)}</span></div>
+      <div class="sub"><span>सर्व: ${orders.length} ऑर्डर्स</span><span>${money(grand)}</span></div>
+      <ul>${PRODUCTS.filter(p=>sums[p.id]).map(p=>`<li><span>${p.name}</span><span>${fmtW(sums[p.id])}</span></li>`).join("")}</ul>
+    </div>`+orders.map(o=>`
+    <div class="ord ${draft.editId===o.id?"cur":""} ${o.done?"done":""}">
+      <div class="oh"><b>${esc(o.name)}${o.done?'<span class="badge">पूर्ण</span>':""}</b><span>${money(o.total)}</span></div>
+      <div class="od">${fmtDate(o.date)} · ${fmtW(weight(o.items))}</div>
+      <ul>${Object.keys(o.items).map(id=>`<li><span>${rateOf(id).name}</span><span>${fmtW(o.items[id])}</span></li>`).join("")}</ul>
+      <div class="oa">
+        <button class="ok" data-a="done" data-id="${o.id}" aria-label="ऑर्डर पूर्ण">${o.done?"✔ पूर्ण":"✔"}</button>
+        <button data-a="edit" data-id="${o.id}">बदला</button>
+        <button data-a="wa" data-id="${o.id}">WhatsApp</button>
+        <button class="del" data-a="del" data-id="${o.id}">हटवा</button>
+      </div>
+    </div>`).join("")+'<button class="clearall" data-a="clear">सर्व ऑर्डर्स हटवा</button>';
+}
+$("orders").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-a]"); if(!b) return;
+  if(b.dataset.a==="clear"){
+    if(!orders.length||!confirm("सर्व "+orders.length+" ऑर्डर्स कायमच्या हटवायच्या?")) return;
+    orders=[];store(ORDERS_KEY,orders);draft.editId=null;render();renderOrders();toast("सर्व ऑर्डर्स हटवल्या");return;
+  }
+  const o=orders.find(x=>x.id===b.dataset.id); if(!o) return;
+  if(b.dataset.a==="done"){
+    o.done=!o.done;store(ORDERS_KEY,orders);renderOrders();toast(o.done?"ऑर्डर पूर्ण झाली":"ऑर्डर पुन्हा बाकी केली");
+  }else if(b.dataset.a==="edit"){
+    draft.name=o.name;draft.editId=o.id;
+    Object.keys(qty).forEach(k=>delete qty[k]);
+    Object.assign(qty,o.items);
+    render();closeMenu();window.scrollTo({top:0,behavior:"smooth"});
+    toast("बदल करून 'बदल सेव्ह करा' दाबा");
+  }else if(b.dataset.a==="wa"){
+    window.open("https://wa.me/?text="+encodeURIComponent(orderText(o)),"_blank");
+  }else if(b.dataset.a==="del"){
+    if(!confirm(o.name+" यांची ऑर्डर हटवायची?")) return;
+    orders=orders.filter(x=>x.id!==o.id);store(ORDERS_KEY,orders);
+    if(draft.editId===o.id){draft.editId=null;render()}
+    renderOrders();toast("ऑर्डर हटवली");
+  }
+});
+
+render();renderOrders();
+</script>
+</body>
+</html>
